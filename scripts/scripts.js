@@ -13,6 +13,10 @@ import {
   loadCSS,
 } from './lib-franklin.js';
 
+import {
+  returnLinkTarget,
+} from '../utils/helpers.js';
+
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
 /**
@@ -56,6 +60,17 @@ function buildAutoBlocks(main) {
 }
 
 /**
+ * href target assignment for links
+ * @param {*} main
+ */
+export function decorateLinks(main) {
+  const links = main.querySelectorAll('a');
+  links.forEach((link) => {
+    link.setAttribute('target', returnLinkTarget(link.href));
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -67,7 +82,9 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateLinks(main);
 }
+
 
 /**
  * Loads everything needed to get to LCP.
