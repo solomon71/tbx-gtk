@@ -245,6 +245,16 @@ main .section {
   }
 }
 
+
+/* lead-in */
+#lead-in {
+  background-color: var(--overlay-background-color);
+  padding: 64px 16px;
+  text-align: center;
+  font-family: var(--fixed-font-family);
+}
+
+
 /* section metadata */
 main .section.highlight {
   background-color: var(--highlight-background-color);
