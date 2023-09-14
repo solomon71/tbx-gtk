@@ -109,12 +109,36 @@ async function loadEager(doc) {
   }
 }
 
+export function addFadeUp(element) {
+  const observerOptions = {
+    threshold: 0.10,
+    rootMargin: '-10px 0px -10px 0px',
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  const sections = Array.from(element.getElementsByClassName('fadeup'));
+  sections.forEach((section, i) => {
+    // remove first section (block) from fadeup with a fadeup class
+    if (!i) section.classList.add('in-view');
+    observer.observe(section);
+  });
+}
+
 /**
  * Loads everything that doesn't need to be delayed.
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
+  addFadeUp(main);
   await loadBlocks(main);
 
   const { hash } = window.location;
