@@ -1,0 +1,20 @@
+.code-highlighted pre {
+  position: relative;
+  padding: 0;
+}
+
+/* .code-highlighted:not(.dark) code.hljs {
+  background-color: transparent;
+} */
+
+.code-highlighted .languageLabel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: #999;
+  font-family: var(--body-font-family);
+  font-size: small;
+  color: #fff;
+  padding: 0.25em 0.75em;
+  border-radius: 0 0 0 0.25em;
+}
