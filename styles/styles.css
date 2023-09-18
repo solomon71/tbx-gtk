@@ -273,3 +273,9 @@ main .section.highlight {
   transform: none;
   opacity: 1;
 }
+
+
+/* ------------- custom ------------- */
+.azul {
+  color: #035fe6;
+}

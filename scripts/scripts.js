@@ -11,6 +11,7 @@ import {
   waitForLCP,
   loadBlocks,
   loadCSS,
+  loadScript,
 } from './lib-franklin.js';
 
 import {
@@ -18,6 +19,33 @@ import {
 } from '../utils/helpers.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
+
+/* set language in html tag for improving SEO accessibility */
+export function setLanguageForAccessibility(lang = 'en') {
+  document.documentElement.lang = lang;
+}
+
+/**
+ * Helper function to create DOM elements
+ * @param {string} tag DOM element to be created
+ * @param {array} attributes attributes to be added
+ */
+export function createTag(tag, attributes, html) {
+  const el = document.createElement(tag);
+  if (html) {
+    if (html instanceof HTMLElement || html instanceof SVGElement) {
+      el.append(html);
+    } else {
+      el.insertAdjacentHTML('beforeend', html);
+    }
+  }
+  if (attributes) {
+    Object.entries(attributes).forEach(([key, val]) => {
+      el.setAttribute(key, val);
+    });
+  }
+  return el;
+}
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -109,6 +137,42 @@ async function loadEager(doc) {
   }
 }
 
+async function loadHighlightLibrary() {
+  const highlightCSS = createTag('link', {
+    rel: 'stylesheet',
+    href: '/libs/highlight/github.min.css',
+  });
+  document.head.append(highlightCSS);
+
+  await loadScript('/libs/highlight/highlight.min.js');
+  const initScript = createTag('script', {}, 'hljs.highlightAll();');
+  document.body.append(initScript);
+}
+
+export async function decorateGuideTemplateCodeBlock() {
+  const firstCodeBlock = document.querySelector('pre code');
+  if (!firstCodeBlock) return;
+
+  const intersectionObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          loadHighlightLibrary();
+        }
+      });
+    },
+    {
+      root: null,
+      rootMargin: '200px', // Adjust rootMargin as needed to trigger intersection at the desired position before the codeblock becomes visible
+      threshold: 0,
+    },
+  );
+
+  // when first codeblock is coming into view, load highlight.js for page
+  intersectionObserver.observe(firstCodeBlock);
+}
+
 export function addFadeUp(element) {
   const observerOptions = {
     threshold: 0.10,
@@ -150,6 +214,8 @@ async function loadLazy(doc) {
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
+
+  decorateGuideTemplateCodeBlock();
 
   sampleRUM('lazy');
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
