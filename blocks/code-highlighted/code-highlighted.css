@@ -3,11 +3,21 @@
   padding: 0;
 }
 
-/* .code-highlighted:not(.dark) code.hljs {
-  background-color: transparent;
-} */
+.code-highlighted code {
+  font-size: 0.9em;
+}
 
-.code-highlighted .languageLabel {
+.code-highlighted pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+}
+
+.code-highlighted code.hljs {
+  padding: 3px 5px;
+}
+
+.code-highlighted .language-label {
   position: absolute;
   right: 0;
   top: 0;
