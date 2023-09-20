@@ -1,9 +1,4 @@
 import createTag from '../../utils/tag.js';
-import {
-  loadCSS,
-  loadScript,
-} from '../../scripts/lib-franklin.js';
-
 
 export default function decorate(block) {
   const code = block.querySelector('pre code');
