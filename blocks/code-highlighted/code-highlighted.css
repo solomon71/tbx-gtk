@@ -3,25 +3,18 @@
   padding: 0;
 }
 
-.code-highlighted code {
+.code-highlighted pre code {
   font-size: 0.9em;
-}
-
-.code-highlighted pre code.hljs {
+  padding: 1em;
   display: block;
   overflow-x: auto;
-  padding: 1em;
 }
 
-.code-highlighted code.hljs {
-  padding: 3px 5px;
-}
-
-.code-highlighted .language-label {
+.code-highlighted small {
   position: absolute;
   right: 0;
   top: 0;
-  background-color: #999;
+  background-color: rgba(0,0,0,.33);
   font-family: var(--body-font-family);
   font-size: small;
   color: #fff;

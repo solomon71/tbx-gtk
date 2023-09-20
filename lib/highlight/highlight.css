@@ -11,7 +11,7 @@
 
 .hljs {
   color: #24292e;
-  background: #ffffff;
+  background-color: var(--overlay-background-color);
 }
 
 .hljs-doctag,
