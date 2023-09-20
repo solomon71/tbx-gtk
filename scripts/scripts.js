@@ -18,7 +18,7 @@ import {
   returnLinkTarget,
 } from '../utils/helpers.js';
 
-import createTag from '../../utils/tag.js';
+import createTag from '../utils/tag.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
