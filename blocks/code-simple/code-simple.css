@@ -1,0 +1,31 @@
+.code-simple.dark pre {
+  color: #adbac7;
+  background: #22272e;
+}
+
+.code-simple code {
+  counter-reset: line;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.code-simple code span {
+  display: block;
+}
+
+.code-simple.line-numbers code span:before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  padding: 0 .5em 0 0;
+  margin-right: .5em;
+  color: rgba(0 0 0 / 0.2);
+  border-right: 1px solid rgba(0 0 0 / 0.2);
+  min-width: 2em;
+  text-align: right;
+}
+
+.code-simple.line-numbers.dark code span:before {
+  color: rgba(255 255 255 / 0.2);
+  border-right: 1px solid rgba(255 255 255 / 0.2);
+}
