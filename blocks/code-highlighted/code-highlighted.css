@@ -14,7 +14,7 @@
   position: absolute;
   right: 0;
   top: 0;
-  background-color: rgba(0,0,0,.33);
+  background-color: rgba(0, 0, 0, 0.33);
   font-family: var(--body-font-family);
   font-size: small;
   color: #fff;
