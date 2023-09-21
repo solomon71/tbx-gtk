@@ -17,6 +17,8 @@ import {
   returnLinkTarget,
 } from '../utils/helpers.js';
 
+import createTag from '../utils/tag.js';
+
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
 /**
@@ -83,6 +85,32 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateLinks(main);
+}
+
+export async function detectCodepenBlock() {
+  const firstCodepenBlock = document.querySelector('.codepen');
+  if (!firstCodepenBlock) return;
+
+  const intersectionObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          const embedScript = createTag('script', {
+            src: 'https://cpwebassets.codepen.io/assets/embed/ei.js'
+          });
+          embedScript.setAttribute('async', '');
+          document.body.append(embedScript);
+        }
+      });
+    },
+    {
+      root: null,
+      rootMargin: '200px',
+      threshold: 0,
+    },
+  );
+  intersectionObserver.observe(firstCodepenBlock);
 }
 
 /**
