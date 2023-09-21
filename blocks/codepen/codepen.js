@@ -1,4 +1,4 @@
-import createTag from "../../utils/tag.js";
+import createTag from '../../utils/tag.js';
 
 export default function decorate(block) {
   const penUrl = block.textContent.trim();

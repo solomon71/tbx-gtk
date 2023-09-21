@@ -98,7 +98,7 @@ export async function detectCodepenBlock() {
         if (entry.isIntersecting) {
           observer.unobserve(entry.target);
           const embedScript = createTag('script', {
-            src: 'https://cpwebassets.codepen.io/assets/embed/ei.js'
+            src: 'https://cpwebassets.codepen.io/assets/embed/ei.js',
           });
           embedScript.setAttribute('async', '');
           document.body.append(embedScript);
