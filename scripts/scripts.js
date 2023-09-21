@@ -11,11 +11,14 @@ import {
   waitForLCP,
   loadBlocks,
   loadCSS,
+  loadScript,
 } from './lib-franklin.js';
 
 import {
   returnLinkTarget,
 } from '../utils/helpers.js';
+
+import createTag from '../utils/tag.js';
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 
@@ -154,6 +157,37 @@ async function loadLazy(doc) {
   sampleRUM('lazy');
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
   sampleRUM.observe(main.querySelectorAll('picture > img'));
+}
+
+async function loadCodeHighlight() {
+  loadCSS(`${window.hlx.codeBasePath}/lib/highlight/highlight.css`);
+  await loadScript(`${window.hlx.codeBasePath}/lib/highlight/highlight.min.js`);
+  const initScript = createTag('script', {}, 'hljs.highlightAll();');
+  document.body.append(initScript);
+}
+
+export async function detectCodeHighlightedBlock() {
+  const firstCodeBlock = document.querySelector('.code-highlighted pre code');
+  if (!firstCodeBlock) return;
+
+  const intersectionObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          loadCodeHighlight();
+        }
+      });
+    },
+    {
+      root: null,
+      rootMargin: '200px',
+      threshold: 0,
+    },
+  );
+
+  // when first codeblock is coming into view, load highlight.js for page
+  intersectionObserver.observe(firstCodeBlock);
 }
 
 /**

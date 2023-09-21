@@ -1,0 +1,24 @@
+.code-highlighted pre {
+  position: relative;
+  padding: 0;
+}
+
+.code-highlighted pre code {
+  font-size: 0.9em;
+  padding: 1em;
+  display: block;
+  overflow-x: auto;
+}
+
+.code-highlighted small {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: rgba(0 0 0 33%);
+  font-family: var(--body-font-family);
+  font-size: small;
+  color: #fff;
+  padding: 0.25em 0.75em;
+  border-radius: 0 0 0 0.25em;
+  text-transform: uppercase;
+}
