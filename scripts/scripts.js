@@ -88,6 +88,32 @@ export function decorateMain(main) {
   decorateLinks(main);
 }
 
+export async function detectCodepenBlock() {
+  const firstCodepenBlock = document.querySelector('.codepen');
+  if (!firstCodepenBlock) return;
+
+  const intersectionObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          const embedScript = createTag('script', {
+            src: 'https://cpwebassets.codepen.io/assets/embed/ei.js',
+          });
+          embedScript.setAttribute('async', '');
+          document.body.append(embedScript);
+        }
+      });
+    },
+    {
+      root: null,
+      rootMargin: '200px',
+      threshold: 0,
+    },
+  );
+  intersectionObserver.observe(firstCodepenBlock);
+}
+
 /**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element

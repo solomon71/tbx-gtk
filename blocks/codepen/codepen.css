@@ -1,0 +1,19 @@
+.cp_embed_wrapper { /* stylelint-disable-line selector-class-pattern */
+  margin: 1em 0;
+}
+
+.codepen {
+  height: 420px;
+  background-color: var(--overlay-background-color);
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  margin: 1em 0; 
+  padding: 1em;
+}
+
+.codepen > a {
+  color: #000;
+  text-align: center;
+}
