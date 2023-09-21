@@ -1,0 +1,1 @@
+See https://docs.google.com/document/d/1s4BszPOR8mRSv48gUhFPPfYkTU1aCOZ7SoxBkKPaKBs/edit for doc table setup
