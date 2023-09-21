@@ -12,12 +12,13 @@
 
  :root {
   /* colors */
-  --link-color: #035fe6;
-  --link-hover-color: #136ff6;
+  --link-color: rgb(89 101 125);
+  --link-hover-color: black;
   --background-color: #fff;
   --overlay-background-color: #eee;
   --highlight-background-color: #ccc;
   --text-color: #000;
+  --color-light: var(--link-color);
 
   /* fonts */
   --body-font-family: inter, inter-fallback;
@@ -131,7 +132,7 @@ main pre {
 
 a:any-link {
   color: var(--link-color);
-  text-decoration: none;
+  text-decoration: underline dashed;
 }
 
 a:hover {
