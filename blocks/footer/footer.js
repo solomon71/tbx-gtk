@@ -1,4 +1,8 @@
-import { readBlockConfig, decorateIcons } from '../../scripts/lib-franklin.js';
+import {
+  readBlockConfig,
+  decorateIcons,
+} from '../../scripts/lib-franklin.js';
+
 import {
   decorateLinks,
 } from '../../scripts/scripts.js';
@@ -15,7 +19,17 @@ export default async function decorate(block) {
   const resp = await fetch(`${footerPath}.plain.html`, window.location.pathname.endsWith('/footer') ? { cache: 'reload' } : {});
 
   if (resp.ok) {
-    const html = await resp.text();
+    let html = await resp.text();
+
+    // look for copyright character and append year
+    const year = new Date().getFullYear();
+    const copy = html.indexOf('© ');
+    if (copy > -1) {
+      const copyYear = html.indexOf(' ', copy);
+      if (copyYear > -1) {
+        html = html.replace(html.substring(copy, copyYear), `©${year}`);
+      }
+    }
 
     // decorate footer DOM
     const footer = document.createElement('div');
