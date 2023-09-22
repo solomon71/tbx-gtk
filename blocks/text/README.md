@@ -1,0 +1,1 @@
+This is an optional block that can be used if a text node needs to use a class like .fadeup, etc. A place to attach classes to text.
