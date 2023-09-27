@@ -1,4 +1,5 @@
 import * as taxonomyLibrary from '../../scripts/taxonomy.js';
+import { getMetadata } from '../../utils/utils.js';
 
 let taxonomyModule;
 
@@ -138,6 +139,26 @@ export function getTaxonomyModule() {
 }
 
 /**
+ * Prefixes the link with the language root defined in the metadata
+ * @param link
+ * @returns {string|*}
+ */
+// eslint-disable-next-line import/prefer-default-export
+export function updateLinkWithLangRoot(link) {
+  const langRoot = getMetadata('lang-root');
+  if (!langRoot) return link;
+  try {
+    const url = new URL(link);
+    url.pathname = `${langRoot}${url.pathname}`;
+    return url.href;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Could not update link with lang root', e);
+    return link;
+  }
+}
+
+/**
  * Returns a link tag with the proper href for the given topic.
  * If the taxonomy is not yet available, the tag is decorated with the topicLink
  * data attribute so that the link can be fixed later.
@@ -155,10 +176,10 @@ function getLinkForTopic(topic, path) {
   return `<a href="${catLink ?? ''}" ${!catLink ? `data-topic-link="${topic}"` : ''}>${topic}</a>`;
 }
 
-async function loadTaxonomy() {
-  const config = getConfig();
-  const taxonomyRoot = config.taxonomyRoot || '/posts';
-  taxonomyModule = await taxonomyLibrary.default(config, taxonomyRoot);
+export async function loadTaxonomy() {
+  // const config = getConfig();
+  const taxonomyRoot = '/posts';
+  taxonomyModule = await taxonomyLibrary.default(taxonomyRoot, '/taxonomy.json');
   if (taxonomyModule) {
     // taxonomy loaded, post loading adjustments
     // fix the links which have been created before the taxonomy has been loaded
@@ -218,7 +239,7 @@ async function loadTaxonomy() {
  * @param {Object} post The post
  * @returns The taxonomy object
  */
-function getPostTaxonomy(post) {
+export function getPostTaxonomy(post) {
   const {
     category,
     topics,

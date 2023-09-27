@@ -8,6 +8,8 @@ import {
   buildPostCard,
 } from './post-helpers.js';
 
+const ROOT_MARGIN = 50;
+
 const postIndex = {
   data: [],
   byPath: {},
@@ -90,9 +92,9 @@ async function filterPosts(feed, limit, offset) {
   /* filter posts by category, tag and author */
   const FILTER_NAMES = ['tags', 'topics', 'selectedProducts', 'selectedIndustries', 'author', 'category', 'exclude'];
 
-  const filters = Object.keys(blogIndex.config).reduce((prev, key) => {
+  const filters = Object.keys(postIndex.config).reduce((prev, key) => {
     if (FILTER_NAMES.includes(key)) {
-      prev[key] = blogIndex.config[key].split(',').map((e) => e.toLowerCase().trim());
+      prev[key] = postIndex.config[key].split(',').map((e) => e.toLowerCase().trim());
     }
 
     return prev;
@@ -169,6 +171,7 @@ async function decoratePostFeed(
   const pageEnd = offset + limit;
   await filterPosts(feed, limit, offset);
   const posts = feed.data;
+  console.log(posts);
 
   if (posts.length) {
     // results were found
@@ -184,7 +187,7 @@ async function decoratePostFeed(
   for (let i = offset; i < max; i += 1) {
     const post = posts[i];
     const card = buildPostCard(post);
-    posts.append(card);
+    postCards.append(card);
   }
   if (posts.length > pageEnd || !feed.complete) {
     const loadMore = document.createElement('a');
