@@ -147,100 +147,91 @@ function parseTaxonomyJson(data, root) {
   });
 }
 
-const formatPath = (str) => str?.replace(/^\/+/g, '').replace(/\/+$/, '');
-
 /**
  * Returns the taxonomy object
  * @param {*} route path to display topics. Defaults to {contentRoot}
- * @param {*} target URL to use to load the taxonomy. Defaults to {contentRoot}/taxonomy.json
+ * @param {*} path URL to use to load the taxonomy. Defaults to {contentRoot}/taxonomy.json
  * @returns {object} The taxonomy object
  */
-export default async (route, target) => {
-  // const root = route
-  //   ? `${config.locale.contentRoot}/${formatPath(route)}`
-  //   : config.locale.contentRoot;
-  const path = target || `${config.locale.contentRoot}/taxonomy.json`;
+export default async (route, path) => fetchTaxonomy(path)
+  .then((json) => {
+    const taxonomy = parseTaxonomyJson(json.data, route);
 
-  return fetchTaxonomy(path)
-    .then((json) => {
-      const taxonomy = parseTaxonomyJson(json.data, route);
+    return {
+      CATEGORIES,
+      INDUSTRIES,
+      INTERNALS,
+      PRODUCTS,
+      NO_INTERLINKS,
 
-      return {
-        CATEGORIES,
-        INDUSTRIES,
-        INTERNALS,
-        PRODUCTS,
-        NO_INTERLINKS,
+      lookup(topic) {
+        return this.get(topic, PRODUCTS)
+          || this.get(topic.replace('Adobe ', ''), PRODUCTS)
+          || this.get(topic);
+      },
 
-        lookup(topic) {
-          return this.get(topic, PRODUCTS)
-            || this.get(topic.replace('Adobe ', ''), PRODUCTS)
-            || this.get(topic);
-        },
+      get(topic, cat) {
+        // take first one of the list
+        const item = findItem(topic, cat, taxonomy);
 
-        get(topic, cat) {
-          // take first one of the list
-          const item = findItem(topic, cat, taxonomy);
+        if (!item) { return null; }
 
-          if (!item) { return null; }
+        return {
+          name: item.name,
+          link: this.getLink(item.name, cat),
+          isUFT: this.isUFT(item.name, cat),
+          skipMeta: this.skipMeta(item.name, cat),
+          level: item.level,
+          parents: this.getParents(item.name, cat),
+          children: this.getChildren(item.name, cat),
+          category: this.getCategoryTitle(item.category),
+        };
+      },
 
-          return {
-            name: item.name,
-            link: this.getLink(item.name, cat),
-            isUFT: this.isUFT(item.name, cat),
-            skipMeta: this.skipMeta(item.name, cat),
-            level: item.level,
-            parents: this.getParents(item.name, cat),
-            children: this.getChildren(item.name, cat),
-            category: this.getCategoryTitle(item.category),
-          };
-        },
+      isUFT(topic, cat) {
+        const t = findItem(topic, cat, taxonomy);
+        return t && !t.hidden;
+      },
 
-        isUFT(topic, cat) {
+      skipMeta(topic, cat) {
+        const t = findItem(topic, cat, taxonomy);
+        return t && t.skipMeta;
+      },
+
+      getLink(topic, cat) {
+        const t = findItem(topic, cat, taxonomy);
+        const link = t?.link?.replace('.html', '');
+        return link;
+      },
+
+      getParents(topics, cat) {
+        const list = typeof topics === 'string' ? [topics] : topics;
+        return list.reduce((parents, topic) => {
           const t = findItem(topic, cat, taxonomy);
-          return t && !t.hidden;
-        },
-
-        skipMeta(topic, cat) {
-          const t = findItem(topic, cat, taxonomy);
-          return t && t.skipMeta;
-        },
-
-        getLink(topic, cat) {
-          const t = findItem(topic, cat, taxonomy);
-          const link = t?.link?.replace('.html', '');
-          return link;
-        },
-
-        getParents(topics, cat) {
-          const list = typeof topics === 'string' ? [topics] : topics;
-          return list.reduce((parents, topic) => {
-            const t = findItem(topic, cat, taxonomy);
-            if (t) {
-              if (t.level3) {
-                if (parents.indexOf(t.level2) === -1) parents.push(t.level2);
-                if (parents.indexOf(t.level1) === -1) parents.push(t.level1);
-              } else if (t.level2 && parents.indexOf(t.level1) === -1) {
-                parents.push(t.level1);
-              }
+          if (t) {
+            if (t.level3) {
+              if (parents.indexOf(t.level2) === -1) parents.push(t.level2);
+              if (parents.indexOf(t.level1) === -1) parents.push(t.level1);
+            } else if (t.level2 && parents.indexOf(t.level1) === -1) {
+              parents.push(t.level1);
             }
+          }
 
-            return parents;
-          }, []);
-        },
+          return parents;
+        }, []);
+      },
 
-        getChildren(topic, cat) {
-          const children = isProduct(cat) ? taxonomy.productChildren : taxonomy.topicChildren;
-          return children[topic] ?? [];
-        },
+      getChildren(topic, cat) {
+        const children = isProduct(cat) ? taxonomy.productChildren : taxonomy.topicChildren;
+        return children[topic] ?? [];
+      },
 
-        getCategory(cat) {
-          return taxonomy.categories[cat.toLowerCase()] ?? [];
-        },
+      getCategory(cat) {
+        return taxonomy.categories[cat.toLowerCase()] ?? [];
+      },
 
-        getCategoryTitle(cat) {
-          return cat.charAt(0).toUpperCase() + cat.substring(1);
-        },
-      };
-    });
-};
+      getCategoryTitle(cat) {
+        return cat.charAt(0).toUpperCase() + cat.substring(1);
+      },
+    };
+  });

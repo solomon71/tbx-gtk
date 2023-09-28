@@ -4,7 +4,12 @@ export function getMetadata(name, doc = document) {
   return meta && meta.content;
 }
 
-export function createIntersectionObserver({ el, callback, once = true, options = {} }) {
+export function createIntersectionObserver({
+  el,
+  callback,
+  once = true,
+  options = {},
+}) {
   const io = new IntersectionObserver((entries, observer) => {
     entries.forEach(async (entry) => {
       if (entry.isIntersecting) {
@@ -15,4 +20,14 @@ export function createIntersectionObserver({ el, callback, once = true, options 
   }, options);
   io.observe(el);
   return io;
+}
+
+export function getConfig() {
+  return {
+    locale: {
+      ietf: 'en-US',
+      prefix: '',
+      region: 'us',
+    },
+  };
 }

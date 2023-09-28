@@ -59,7 +59,7 @@ export function formatCardLocaleDate(date, dateLocale = 'en-US') {
  */
 function computeTaxonomyFromTopics(topics, path) {
   // no topics: default to a randomly choosen category
-  const category = topics?.length > 0 ? topics[0] : 'news';
+  const category = topics?.length > 0 ? topics[0] : 'posts';
   if (taxonomyModule) {
     const allTopics = [];
     const visibleTopics = [];
@@ -86,7 +86,12 @@ function computeTaxonomyFromTopics(topics, path) {
         console.warn(`Unknown topic in tags list: ${tag} ${path ? `on page ${path}` : '(current page)'}`);
       }
     });
-    return { category, topics, visibleTopics, allTopics };
+    return {
+      category,
+      topics,
+      visibleTopics,
+      allTopics,
+    };
   }
   return { category, topics };
 }
@@ -125,7 +130,7 @@ export function loadPostTaxonomy(post) {
     // allTopics = all topics including parents
     clonedPost.allTopics = postTax.allTopics;
   } else {
-    clonedPost.category = 'News';
+    clonedPost.category = 'Posts';
     clonedPost.topics = [];
     clonedPost.visibleTopics = [];
     clonedPost.allTopics = [];
@@ -247,7 +252,12 @@ export function getPostTaxonomy(post) {
     allTopics,
   } = post.allTopics ? post : loadPostTaxonomy(post);
 
-  return { category, topics, visibleTopics, allTopics };
+  return {
+    category,
+    topics,
+    visibleTopics,
+    allTopics,
+  };
 }
 
 /**
@@ -259,39 +269,6 @@ export function toClassName(name) {
   return name && typeof name === 'string'
     ? name.toLowerCase().replace(/[^0-9a-z]/gi, '-')
     : '';
-}
-
-/**
- * Build post card
- * @param {Element} post The post data to be placed in card.
- * @returns card Generated card
- */
-export function buildPostCard(post, type = 'post', eager = false) {
-  const { title, description, image, imageAlt, date } = post;
-
-  const path = post.path.split('.')[0];
-
-  const picture = createOptimizedPicture(image, imageAlt || title, eager, [{ width: '750' }]);
-  const pictureTag = picture.outerHTML;
-  const card = document.createElement('a');
-  card.className = `${type}-card`;
-  card.href = path;
-
-  const postTax = getPostTaxonomy(post);
-  const categoryTag = getLinkForTopic(postTax.category, path);
-
-  card.innerHTML = `<div class="${type}-card-image">
-      ${pictureTag}
-    </div>
-    <div class="${type}-card-body">
-      <p class="${type}-card-category">
-        ${categoryTag}
-      </p>
-      <h3>${title}</h3>
-      <p class="${type}-card-description">${description}</p>
-      <p class="${type}-card-date">${formatCardLocaleDate(date)}
-    </div>`;
-  return card;
 }
 
 export function createOptimizedPicture(src, alt = '', eager = false, breakpoints = [{ media: '(min-width: 400px)', width: '2000' }, { width: '750' }]) {
@@ -326,4 +303,43 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
   });
 
   return picture;
+}
+
+/**
+ * Build post card
+ * @param {Element} post The post data to be placed in card.
+ * @returns card Generated card
+ */
+export function buildPostCard(post, type = 'post', eager = false) {
+  const {
+    title,
+    description,
+    image,
+    imageAlt,
+    date,
+  } = post;
+
+  const path = post.path.split('.')[0];
+
+  const picture = createOptimizedPicture(image, imageAlt || title, eager, [{ width: '750' }]);
+  const pictureTag = picture.outerHTML;
+  const card = document.createElement('a');
+  card.className = `${type}-card`;
+  card.href = path;
+
+  const postTax = getPostTaxonomy(post);
+  const categoryTag = getLinkForTopic(postTax.category, path);
+
+  card.innerHTML = `<div class="${type}-card-image">
+      ${pictureTag}
+    </div>
+    <div class="${type}-card-body">
+      <p class="${type}-card-category">
+        ${categoryTag}
+      </p>
+      <h3>${title}</h3>
+      <p class="${type}-card-description">${description}</p>
+      <p class="${type}-card-date">${formatCardLocaleDate(date)}
+    </div>`;
+  return card;
 }

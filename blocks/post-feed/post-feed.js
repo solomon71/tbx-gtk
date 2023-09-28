@@ -1,12 +1,15 @@
 import createTag from '../../utils/tag.js';
-import { createIntersectionObserver } from '../../utils/utils.js';
+import { createIntersectionObserver, getConfig } from '../../utils/utils.js';
 import {
   stamp,
   toClassName,
+  getTaxonomyModule,
   loadTaxonomy,
   getPostTaxonomy,
   buildPostCard,
 } from './post-helpers.js';
+
+import { replaceKey } from '../../lib/features/placeholders.js';
 
 const ROOT_MARGIN = 50;
 
@@ -88,6 +91,259 @@ function isCardOnPage(post) {
 
 const isInList = (list, val) => list && list.map((t) => t.toLowerCase()).includes(val);
 
+function closeMenu(el) {
+  el.setAttribute('aria-expanded', false);
+}
+
+function openMenu(el) {
+  const expandedMenu = document.querySelector('.filter-button[aria-expanded=true]');
+  if (expandedMenu) { closeMenu(expandedMenu); }
+  el.setAttribute('aria-expanded', true);
+}
+
+function filterSearch(e) {
+  const { target } = e;
+  const { value } = target;
+  const parent = target.parentElement.parentElement;
+  parent.querySelectorAll('.filter-option').forEach((option) => {
+    if (!value.length || option.textContent.toLowerCase().includes(value)) {
+      option.classList.remove('hide');
+    } else {
+      option.classList.add('hide');
+    }
+  });
+}
+
+function enableSearch(id) {
+  const menu = document.querySelector(`[aria-labelledby='${id}']`);
+  const input = menu.querySelector('input');
+  input.addEventListener('keyup', filterSearch);
+}
+
+function disableSearch(id) {
+  const menu = document.querySelector(`[aria-labelledby='${id}']`);
+  const input = menu.querySelector('input');
+  input.value = '';
+  const parent = input.parentElement.parentElement;
+  parent.querySelectorAll('.filter-option').forEach((option) => {
+    option.classList.remove('hide');
+  });
+  input.removeEventListener('keyup', filterSearch);
+}
+
+function closeOnDocClick(e) {
+  const { target } = e;
+  const curtain = document.querySelector('.filter-curtain');
+  if (target === curtain) {
+    const open = document.querySelector('.filter-button[aria-expanded=true]');
+    closeMenu(open);
+    disableSearch(open.id);
+    curtain.classList.add('hide');
+  }
+}
+
+function closeCurtain() {
+  const curtain = document.querySelector('.filter-curtain');
+  curtain.classList.add('hide');
+  window.removeEventListener('click', closeOnDocClick);
+}
+
+function openCurtain() {
+  const curtain = document.querySelector('.filter-curtain');
+  curtain.classList.remove('hide');
+  window.addEventListener('click', closeOnDocClick);
+}
+
+function toggleMenu(e) {
+  const button = e.target.closest('[role=button]');
+  const expanded = button.getAttribute('aria-expanded');
+  if (expanded === 'true') {
+    closeMenu(button);
+    disableSearch(button.id);
+    closeCurtain();
+  } else {
+    openMenu(button);
+    enableSearch(button.id);
+    openCurtain();
+  }
+}
+
+function buildSelectedFilter(name) {
+  const a = document.createElement('a');
+  a.classList.add('selected-filter');
+  a.setAttribute('tabindex', 0);
+  a.textContent = name;
+  return a;
+}
+
+function clearFilter(e, block) {
+  const { target } = e;
+  const checked = document
+    .querySelector(`input[name='${target.textContent}']`);
+  if (checked) { checked.checked = false; }
+  delete postIndex.config.selectedProducts;
+  delete postIndex.config.selectedIndustries;
+  // eslint-disable-next-line no-use-before-define
+  applyCurrentFilters(block);
+}
+
+function applyCurrentFilters(block, close) {
+  const filters = {};
+  document.querySelectorAll('.filter-options').forEach((filter) => {
+    const type = filter.getAttribute('data-type');
+    const subfilters = [];
+    filter.querySelectorAll('input[type=checkbox]').forEach((box) => {
+      if (box.checked) {
+        const boxType = box.parentElement.parentElement.getAttribute('data-type');
+        const capBoxType = boxType.charAt(0).toUpperCase() + boxType.slice(1);
+        subfilters.push(box.name);
+        if (postIndex.config[`selected${capBoxType}`]) {
+          postIndex.config[`selected${capBoxType}`] += `, ${box.name}`;
+        } else {
+          postIndex.config[`selected${capBoxType}`] = box.name;
+        }
+      }
+    });
+    if (subfilters.length) {
+      filters[type] = subfilters;
+    }
+    if (close) {
+      const id = filter.parentElement.getAttribute('aria-labelledby');
+      const dropdown = document.getElementById(id);
+      closeMenu(dropdown);
+    }
+  });
+  const selectedContainer = document.querySelector('.selected-container');
+  const selectedFilters = selectedContainer.querySelector('.selected-filters');
+  selectedFilters.innerHTML = '';
+
+  if (Object.keys(filters).length > 0) {
+    Object.keys(filters).forEach((filter) => {
+      filters[filter].forEach((f) => {
+        const selectedFilter = buildSelectedFilter(f);
+        selectedFilter.addEventListener('click', (e) => {
+          clearFilter(e, block);
+        });
+        selectedFilters.append(selectedFilter);
+      });
+    });
+    selectedContainer.classList.remove('hide');
+  } else {
+    selectedContainer.classList.add('hide');
+  }
+  if (block) {
+    block.innerHTML = '';
+    // eslint-disable-next-line no-use-before-define
+    decoratePostFeed(block);
+  }
+}
+
+function clearFilters(e, block) {
+  const type = e.target.classList[e.target.classList.length - 1];
+  let target = document;
+  if (type === 'reset') {
+    target = e.target.parentNode.parentNode;
+  }
+  const dropdowns = target.querySelectorAll('.filter-options');
+  dropdowns.forEach((dropdown) => {
+    const checked = dropdown.querySelectorAll('input:checked');
+    checked.forEach((box) => { box.checked = false; });
+  });
+  delete postIndex.config.selectedProducts;
+  delete postIndex.config.selectedIndustries;
+  applyCurrentFilters(block);
+}
+
+function buildFilterOption(itemName, type) {
+  const name = itemName.replace(/\*/gm, '');
+
+  const option = document.createElement('li');
+  option.classList
+    .add('filter-option', `filter-option-${type}`);
+
+  const checkbox = document.createElement('input');
+  checkbox.id = name;
+  checkbox.setAttribute('name', name);
+  checkbox.setAttribute('type', 'checkbox');
+
+  const label = document.createElement('label');
+  label.setAttribute('for', name);
+  label.textContent = name;
+
+  option.append(checkbox, label);
+  return option;
+}
+
+async function buildFilter(type, tax, block, config) {
+  const container = createTag('div', { class: 'filter' });
+
+  const button = document.createElement('a');
+  button.classList.add('filter-button');
+  button.id = `${type}-filter-button`;
+  button.setAttribute('aria-haspopup', true);
+  button.setAttribute('aria-expanded', false);
+  button.setAttribute('role', 'button');
+  button.textContent = tax.getCategoryTitle(type);
+  button.addEventListener('click', toggleMenu);
+
+  const dropdown = createTag('div', { class: 'filter-dropdown' });
+  dropdown.setAttribute('aria-labelledby', `${type}-filter-button`);
+  dropdown.setAttribute('role', 'menu');
+
+  const SEARCH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+    <path d="M14 2A8 8 0 0 0 7.4 14.5L2.4 19.4a1.5 1.5 0 0 0 2.1 2.1L9.5 16.6A8 8 0 1 0 14 2Zm0 14.1A6.1 6.1 0 1 1 20.1 10 6.1 6.1 0 0 1 14 16.1Z"></path>
+  </svg>`;
+  const searchBar = createTag('div', { class: 'filter-search' });
+  searchBar.insertAdjacentHTML('afterbegin', SEARCH_ICON);
+  const searchField = document.createElement('input');
+  searchField.setAttribute('id', `${type}-filter-search`);
+  searchField.setAttribute('aria-label', await replacePlaceholder('search'));
+  searchField.setAttribute('placeholder', await replacePlaceholder('search'));
+  searchBar.append(searchField);
+
+  const options = document.createElement('ul');
+  options.classList.add('filter-options');
+  options.setAttribute('data-type', type);
+  const category = tax.getCategory(tax[`${type.toUpperCase()}`]);
+
+  category.forEach((topic) => {
+    const item = tax.get(topic, tax[`${type.toUpperCase()}`]);
+    if (item.level === 1) {
+      const option = buildFilterOption(item.name, 'primary');
+      options.append(option);
+      item.children.forEach((child) => {
+        const nestedOption = buildFilterOption(child, 'nested');
+        options.append(nestedOption);
+      });
+    }
+  });
+
+  const footer = createTag('div', { class: 'filter-dropdown-footer' });
+
+  const resetBtn = document.createElement('a');
+  resetBtn.classList.add('button', 'small', 'reset');
+  resetBtn.textContent = await replacePlaceholder('reset');
+  resetBtn.addEventListener('click', clearFilters);
+
+  const applyBtn = document.createElement('a');
+  applyBtn.classList.add('button', 'small', 'apply');
+  applyBtn.textContent = await replacePlaceholder('apply');
+  applyBtn.addEventListener('click', () => {
+    // sampleRUM('apply-topic-filter');
+    delete config.selectedProducts;
+    delete config.selectedIndustries;
+    closeCurtain();
+    disableSearch(`${type}-filter-button`);
+    applyCurrentFilters(block, config, 'close');
+  });
+
+  footer.append(resetBtn, applyBtn);
+
+  dropdown.append(searchBar, options, footer);
+  container.append(button, dropdown);
+  return container;
+}
+
 async function filterPosts(feed, limit, offset) {
   /* filter posts by category, tag and author */
   const FILTER_NAMES = ['tags', 'topics', 'selectedProducts', 'selectedIndustries', 'author', 'category', 'exclude'];
@@ -102,6 +358,7 @@ async function filterPosts(feed, limit, offset) {
 
   while ((feed.data.length < limit + offset) && (!feed.complete)) {
     const beforeLoading = new Date();
+    // eslint-disable-next-line no-await-in-loop
     const index = await fetchPostIndex();
     const indexChunk = index.data.slice(feed.cursor);
 
@@ -171,7 +428,6 @@ async function decoratePostFeed(
   const pageEnd = offset + limit;
   await filterPosts(feed, limit, offset);
   const posts = feed.data;
-  console.log(posts);
 
   if (posts.length) {
     // results were found
@@ -204,61 +460,61 @@ async function decoratePostFeed(
   postFeedEl.classList.add('appear');
 }
 
-// async function decorateFeedFilter(articleFeedEl) {
-//   const taxonomy = getTaxonomyModule();
-//   const parent = document.querySelector('.article-feed');
+async function decorateFeedFilter(postFeedEl) {
+  const taxonomy = getTaxonomyModule();
+  const parent = document.querySelector('.post-feed');
 
-//   const curtain = createTag('div', { class: 'filter-curtain hide' });
-//   document.querySelector('main').append(curtain);
+  const curtain = createTag('div', { class: 'filter-curtain hide' });
+  document.querySelector('main').append(curtain);
 
-//   // FILTER CONTAINER
-//   const filterContainer = createTag('div', { class: 'filter-container' });
-//   const filterWrapper = createTag('div');
+  // FILTER CONTAINER
+  const filterContainer = createTag('div', { class: 'filter-container' });
+  const filterWrapper = createTag('div');
 
-//   const filterText = document.createElement('p');
-//   filterText.classList.add('filter-text');
-//   filterText.textContent = await replacePlaceholder('filters');
+  const filterText = document.createElement('p');
+  filterText.classList.add('filter-text');
+  filterText.textContent = await replacePlaceholder('filters');
 
-//   const productsDropdown = await buildFilter('products', taxonomy, articleFeedEl, postIndex.config);
-//   const industriesDropdown = await buildFilter('industries', taxonomy, articleFeedEl, postIndex.config);
+  const productsDropdown = await buildFilter('products', taxonomy, postFeedEl, postIndex.config);
+  const industriesDropdown = await buildFilter('industries', taxonomy, postFeedEl, postIndex.config);
 
-//   filterWrapper.append(filterText, productsDropdown, industriesDropdown);
-//   filterContainer.append(filterWrapper);
+  filterWrapper.append(filterText, productsDropdown, industriesDropdown);
+  filterContainer.append(filterWrapper);
 
-//   parent.parentElement.insertBefore(filterContainer, parent);
+  parent.parentElement.insertBefore(filterContainer, parent);
 
-//   // SELECTED CONTAINER
-//   const selectedContainer = createTag('div', { class: 'selected-container hide' });
-//   const selectedWrapper = createTag('div');
+  // SELECTED CONTAINER
+  const selectedContainer = createTag('div', { class: 'selected-container hide' });
+  const selectedWrapper = createTag('div');
 
-//   const selectedText = document.createElement('p');
-//   selectedText.classList.add('selected-text');
-//   selectedText.textContent = await replacePlaceholder('showing-articles-for');
+  const selectedText = document.createElement('p');
+  selectedText.classList.add('selected-text');
+  selectedText.textContent = await replacePlaceholder('showing-posts-for');
 
-//   const selectedCategories = document.createElement('span');
-//   selectedCategories.classList.add('selected-filters');
+  const selectedCategories = document.createElement('span');
+  selectedCategories.classList.add('selected-filters');
 
-//   const clearBtn = document.createElement('a');
-//   clearBtn.classList.add('button', 'small', 'clear');
-//   clearBtn.textContent = await replacePlaceholder('clear-all');
-//   clearBtn.addEventListener(
-//     'click',
-//     (e) => clearFilters(e, articleFeedEl),
-//   );
+  const clearBtn = document.createElement('a');
+  clearBtn.classList.add('button', 'small', 'clear');
+  clearBtn.textContent = await replacePlaceholder('clear-all');
+  clearBtn.addEventListener(
+    'click',
+    (e) => clearFilters(e, postFeedEl),
+  );
 
-//   selectedWrapper.append(selectedText, selectedCategories, clearBtn);
-//   selectedContainer.append(selectedWrapper);
-//   parent.parentElement.insertBefore(selectedContainer, parent);
-// }
+  selectedWrapper.append(selectedText, selectedCategories, clearBtn);
+  selectedContainer.append(selectedWrapper);
+  parent.parentElement.insertBefore(selectedContainer, parent);
+}
 
 export default async function init(el) {
   const initPostFeed = async () => {
     postIndex.config = readBlockConfig(el);
     el.innerHTML = '';
     await loadTaxonomy();
-    // if (postIndex.config.filters) {
-    //   decorateFeedFilter(el);
-    // }
+    if (postIndex.config.filters) {
+      decorateFeedFilter(el);
+    }
     decoratePostFeed(el);
   };
 

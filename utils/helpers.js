@@ -166,6 +166,10 @@ export function addInViewAnimationToMultipleElements(animatedItems, triggerEleme
   addInviewObserverToTriggerElement(triggerElement);
 }
 
+export function formatPath(str) {
+  return str?.replace(/^\/+/g, '').replace(/\/+$/, '');
+}
+
 export default {
   removeOuterElementLayer,
   changeTag,

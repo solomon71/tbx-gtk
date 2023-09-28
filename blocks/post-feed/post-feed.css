@@ -1,10 +1,5 @@
 @import url('../../styles/post-card.css');
 
-element {
-  --detail-color: var(--color-gray-600);
-  --detail-line-height: 1.25;
-}
-
 .post-feed.appear {
   visibility: unset;
   min-height: unset;
@@ -82,17 +77,9 @@ element {
   cursor: pointer;
 }
 
-.filter-button[aria-expanded=true] {
+.filter-button[aria-expanded="true"] {
   outline: 2px solid var(--color-info-accent);
   background: var(--color-gray-100);
-}
-
-.filter-button[aria-expanded=true]+.filter-dropdown {
-  visibility: visible;
-}
-
-.filter-button[aria-expanded=false]+.filter-dropdown {
-  visibility: hidden;
 }
 
 .filter-button:hover,
@@ -113,16 +100,15 @@ element {
   padding: 1rem;
 }
 
-.filter-search:hover input {
-  border-color: var(--color-gray-300);
-}
-
-.filter-search:hover input::placeholder {
-  color: var(--color-gray-700);
-}
-
-.filter-search:hover svg {
-  fill: var(--color-gray-700);
+.filter-search input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px;
+  padding-left: 30px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 4px;
+  font-style: italic;
+  font-family: var(--body-font-family);
 }
 
 .filter-search svg {
@@ -135,32 +121,14 @@ element {
   transform: translateY(-50%);
 }
 
-.filter-search input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 9px;
-  padding-left: 30px;
-  border: 1px solid var(--color-gray-200);
-  border-radius: 4px;
-  font-style: italic;
-  font-family: var(--body-font-family);
-}
-
-.filter-search input:not(:placeholder-shown) {
-  font-style: unset;
-}
-
-.filter-search input:focus {
-  outline: 0;
-  border-color: var(--color-info-accent);
+.filter-search:hover svg {
+  fill: var(--color-gray-700);
 }
 
 .filter-dropdown {
   position: fixed;
   display: flex;
   flex-direction: column;
-  top: 0;
-  left: 0;
   top: calc((100% - 435px) / 2);
   left: 5%;
   width: 90%;
@@ -170,6 +138,14 @@ element {
   border-radius: 4px;
   font-size: var(--body-font-size-xs);
   z-index: 2;
+}
+
+.filter-button[aria-expanded="true"]+.filter-dropdown {
+  visibility: visible;
+}
+
+.filter-button[aria-expanded="false"]+.filter-dropdown {
+  visibility: hidden;
 }
 
 @media (min-width: 600px) {
@@ -209,6 +185,23 @@ element {
   margin-right: 9px;
   margin-left: 6px;
   cursor: pointer;
+}
+
+.filter-search:hover input {
+  border-color: var(--color-gray-300);
+}
+
+.filter-search:hover input::placeholder {
+  color: var(--color-gray-700);
+}
+
+.filter-search input:not(:placeholder-shown) {
+  font-style: unset;
+}
+
+.filter-search input:focus {
+  outline: 0;
+  border-color: var(--color-info-accent);
 }
 
 .filter-option label {
@@ -253,7 +246,7 @@ element {
 
 .selected-filter {
   display: inline-block;
-  padding: 0px 6px 3px 6px;
+  padding: 0 6px 3px;
   border: 1px solid var(--color-gray-600);
   border-radius: 4px;
   color: var(--color-gray-600);
@@ -296,6 +289,12 @@ element {
   color: var(--color-gray-600);
 }
 
+.selected-container .button.clear {
+  color: var(--color-info-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .filter-container .button.reset:hover,
 .filter-container .button.reset:focus,
 .selected-container .button.clear:hover,
@@ -312,12 +311,6 @@ element {
 .filter-container .button.apply:hover,
 .filter-container .button.apply:focus {
   background: var(--color-info-accent-hover);
-}
-
-.selected-container .button.clear {
-  color: var(--color-info-accent);
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .post-feed .post-cards-empty {
@@ -344,8 +337,7 @@ element {
   right: 0;
   bottom: 0;
   left: 0;
-  background: rgba(255, 255, 255, 0.75);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba(255 255 255 / 75%);
   backdrop-filter: blur(3px);
   z-index: 1;
 }
@@ -363,18 +355,7 @@ element {
   border-radius: 50%;
   width: 1.6rem;
   height: 1.6rem;
-  -webkit-animation: spin 2s linear infinite;
   animation: spin 2s linear infinite;
-}
-
-@-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-  }
-
-  100% {
-    -webkit-transform: rotate(360deg);
-  }
 }
 
 @keyframes spin {
@@ -387,9 +368,7 @@ element {
   }
 }
 
-/***********/
-/* Pulled from lazy-styles.css
-/***********/
+/* Pulled from lazy-styles.css */
 
 /* post card styles, share between blocks */
 
@@ -467,6 +446,15 @@ main a.post-card:any-link {
   text-align: left;
 }
 
+.post-card-body h3 {
+  font-size: var(--heading-font-size-xs);
+  margin: 0;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+}
+
 .post-card .post-card-body p,
 .post-card .post-card-body h3 {
   margin-left: 0;
@@ -486,15 +474,6 @@ main a.post-card:any-link {
   letter-spacing: 0.1em;
   margin-bottom: 0.5rem;
   text-decoration: none;
-}
-
-.post-card-body h3 {
-  font-size: var(--heading-font-size-xs);
-  margin: 0;
-  margin-bottom: 1rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
 }
 
 @media (min-width: 600px) {

@@ -48,6 +48,16 @@ main a.post-card:any-link {
   white-space: normal;
 }
 
+.post-card-body h3 {
+  font-size: var(--type-heading-xs-size);
+  line-height: 1.3;
+  margin: 0;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+}
+
 .post-card .post-card-body p,
 .post-card .post-card-body h3 {
   margin-left: 0;
@@ -67,16 +77,6 @@ main a.post-card:any-link {
   letter-spacing: 0.1em;
   margin-bottom: 0.5rem;
   text-decoration: none;
-}
-
-.post-card-body h3 {
-  font-size: var(--type-heading-xs-size);
-  line-height: 1.3;
-  margin: 0;
-  margin-bottom: 1rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
 }
 
 .post-card .post-card-body .post-card-description {
